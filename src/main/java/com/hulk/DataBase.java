@@ -48,7 +48,7 @@ public class DataBase {
 
         try {
             PreparedStatement send = conn.
-                    prepareStatement("DELETE FROM users WHERE EXISTS( SELECT id FROM users WHERE id = ?)");
+                    prepareStatement("DELETE FROM users WHERE EXISTS( SELECT user_id FROM users WHERE user_id = ?)");
             send.setInt(1, user.getId());
             isDeleted = send.execute();
 
@@ -64,11 +64,11 @@ public class DataBase {
         ArrayList<User> users = new ArrayList<>();
 
         try {
-            PreparedStatement check = conn.prepareStatement("SELECT id, name FROM users");
+            PreparedStatement check = conn.prepareStatement("SELECT user_id, name FROM users");
             ResultSet rs = check.executeQuery();
 
             while (rs.next()) {
-                users.add(new User(rs.getInt("id"),
+                users.add(new User(rs.getInt("user_id"),
                         rs.getString("name")));
             }
         } catch (SQLException ex) {
@@ -82,13 +82,13 @@ public class DataBase {
         boolean isCreated = false;
 
         try {
-            PreparedStatement check = conn.prepareStatement("SELECT NOT EXISTS(SELECT gname FROM groups WHERE gname = ?)");
+            PreparedStatement check = conn.prepareStatement("SELECT NOT EXISTS(SELECT name FROM groups WHERE name = ?)");
             check.setString(1, gname);
             ResultSet rs = check.executeQuery();
 
             if ( rs.next() ) {
                 rs.close();
-                PreparedStatement send = conn.prepareStatement("INSERT INTO groups (gname) VALUES (?)");
+                PreparedStatement send = conn.prepareStatement("INSERT INTO groups (name) VALUES (?)");
                 send.setString(1, gname);
 
                 send.executeUpdate();
@@ -107,12 +107,12 @@ public class DataBase {
     public User getUser(String username) {
         User user = null;
         try {
-            PreparedStatement send = conn.prepareStatement("SELECT id, name FROM users WHERE name = ?");
+            PreparedStatement send = conn.prepareStatement("SELECT user_id, name FROM users WHERE name = ?");
             send.setString(1, username);
             ResultSet rs = send.executeQuery();
 
             while (rs.next()) {
-                user = new User(rs.getInt("id"), rs.getString("name"));
+                user = new User(rs.getInt("user_id"), rs.getString("name"));
             }
 
         } catch (SQLException ex) {
@@ -122,9 +122,67 @@ public class DataBase {
         return user;
     }
 
-    public boolean addMember(User user, Role role) {
+    public Group getGroup(String gname) {
+        Group group = null;
+        try {
+            PreparedStatement send = conn.prepareStatement("SELECT group_id, name, is_closed FROM groups WHERE name = ?");
+            send.setString(1, gname);
+            ResultSet rs = send.executeQuery();
+
+            while (rs.next()) {
+                group = new Group(rs.getInt("group_id"),
+                        rs.getString("name"),
+                        rs.getBoolean("is_closed"));
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return group;
+    }
+
+    public ArrayList<Group> getGroups() {
+        ArrayList<Group> groups = new ArrayList<>();
+
+        try {
+            PreparedStatement check = conn.prepareStatement("SELECT group_id, name, is_closed FROM groups");
+            ResultSet rs = check.executeQuery();
+
+            while (rs.next()) {
+                groups.add(new Group(rs.getInt("group_id"),
+                        rs.getString("name"),
+                        rs.getBoolean("is_closed")));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return groups;
+    }
+
+    public boolean deleteGroup(Group group) {
+        boolean isDeleted = false;
+
+        try {
+            PreparedStatement send = conn.
+                    prepareStatement("DELETE FROM groups WHERE EXISTS( SELECT group_id FROM groups WHERE group_id = ?)");
+            send.setInt(1, group.getId());
+            isDeleted = !send.execute();
+
+            send.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return isDeleted;
+    }
+
+    public boolean addMember(User user, Group group, Role role) {
         boolean isAdded = false;
 
 
+
+        return isAdded;
     }
 }

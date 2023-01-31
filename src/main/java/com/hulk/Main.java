@@ -17,11 +17,24 @@ public class Main {
 
         db.createGroup("rust");
 
-        db.addMember(db.getUser("Alex"), Role.Admin);
-        db.addMember(db.getUser("Vova"), Role.User);
-        db.addMember(db.getUser("Dima"), Role.User);
+        db.addMember(db.getUser("Alex"), db.getGroup("rust"), Role.Admin);
+        db.addMember(db.getUser("Vova"), db.getGroup("rust"), Role.User);
+        db.addMember(db.getUser("Dima"), db.getGroup("rust"), Role.User);
 
         ArrayList<User> users = db.getUsers();
+        ArrayList<Group> groups = db.getGroups();
+
+//        for (Group g: groups) {
+//            System.out.println(g);
+//        }
+//
+//        for (User u: users) {
+//            System.out.println(u);
+//        }
+
+        for (Group g: groups) {
+            System.out.println(db.deleteGroup(g));
+        }
 
         for (User u: users) {
             System.out.println(db.deleteUser(u));

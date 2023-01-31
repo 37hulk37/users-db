@@ -1,10 +1,5 @@
 package com.hulk;
 
-enum Role {
-    Admin,
-    User
-}
-
 public class Group {
     private String name;
     private int id;

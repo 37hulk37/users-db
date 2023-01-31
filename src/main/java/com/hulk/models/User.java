@@ -1,4 +1,4 @@
-package com.hulk;
+package com.hulk.models;
 
 public class User {
     private int id;

@@ -1,15 +1,15 @@
-package com.hulk;
-
-enum Role {
-    Admin,
-    User
-}
+package com.hulk.models;
 
 public class Member {
     private String name;
     private String gname;
     private Role role;
     private int userId;
+
+    public enum Role {
+        Admin,
+        User
+    }
 
     public Member(String name, String gname, Role role, int userId) {
         this.name = name;

@@ -7,7 +7,6 @@ public class DataBase {
     private Connection conn;
 
     public DataBase(String url, String username, String password) {
-
         try {
             conn = DriverManager.getConnection(url, username, password);
             System.out.println("Successfully connected");
@@ -44,7 +43,8 @@ public class DataBase {
             PreparedStatement send = conn
                     .prepareStatement("DELETE FROM users WHERE EXISTS( SELECT user_id FROM users WHERE user_id = ?)");
             send.setInt(1, user.getId());
-            isDeleted = send.execute();
+            isDeleted = true;
+            send.execute();
 
             send.close();
         } catch (SQLException ex) {
@@ -52,6 +52,24 @@ public class DataBase {
         }
 
         return isDeleted;
+    }
+
+    public User getUser(String username) {
+        User user = null;
+        try {
+            PreparedStatement send = conn.prepareStatement("SELECT user_id, name FROM users WHERE name = ?");
+            send.setString(1, username);
+            ResultSet rs = send.executeQuery();
+
+            while (rs.next()) {
+                user = new User(rs.getInt("user_id"), rs.getString("name"));
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return user;
     }
 
     public ArrayList<User> getUsers() {
@@ -77,7 +95,7 @@ public class DataBase {
 
         try {
             PreparedStatement send = conn
-                    .prepareStatement("INSERT INTO groups (name) SELECT ? WHERE NOT EXISTS (SELECT name FROM groups WHERE name = ?)");
+                    .prepareStatement("INSERT INTO groups (gname) SELECT ? WHERE NOT EXISTS (SELECT gname FROM groups WHERE gname = ?)");
             send.setString(1, gname);
             send.setString(2, gname);
 
@@ -91,34 +109,16 @@ public class DataBase {
         return isCreated;
     }
 
-    public User getUser(String username) {
-        User user = null;
-        try {
-            PreparedStatement send = conn.prepareStatement("SELECT user_id, name FROM users WHERE name = ?");
-            send.setString(1, username);
-            ResultSet rs = send.executeQuery();
-
-            while (rs.next()) {
-                user = new User(rs.getInt("user_id"), rs.getString("name"));
-            }
-
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-
-        return user;
-    }
-
     public Group getGroup(String gname) {
         Group group = null;
         try {
-            PreparedStatement send = conn.prepareStatement("SELECT group_id, name, is_closed FROM groups WHERE name = ?");
+            PreparedStatement send = conn.prepareStatement("SELECT group_id, gname, is_closed FROM groups WHERE gname = ?");
             send.setString(1, gname);
             ResultSet rs = send.executeQuery();
 
             while (rs.next()) {
                 group = new Group(rs.getInt("group_id"),
-                        rs.getString("name"),
+                        rs.getString("gname"),
                         rs.getBoolean("is_closed"));
             }
 
@@ -133,12 +133,12 @@ public class DataBase {
         ArrayList<Group> groups = new ArrayList<>();
 
         try {
-            PreparedStatement check = conn.prepareStatement("SELECT group_id, name, is_closed FROM groups");
+            PreparedStatement check = conn.prepareStatement("SELECT group_id, gname, is_closed FROM groups");
             ResultSet rs = check.executeQuery();
 
             while (rs.next()) {
                 groups.add(new Group(rs.getInt("group_id"),
-                        rs.getString("name"),
+                        rs.getString("gname"),
                         rs.getBoolean("is_closed")));
             }
         } catch (SQLException ex) {
@@ -152,10 +152,11 @@ public class DataBase {
         boolean isDeleted = false;
 
         try {
-            PreparedStatement send = conn.
-                    prepareStatement("DELETE FROM groups WHERE EXISTS( SELECT group_id FROM groups WHERE group_id = ?)");
+            PreparedStatement send = conn
+                    .prepareStatement("DELETE FROM groups WHERE EXISTS( SELECT group_id FROM groups WHERE group_id = ?)");
             send.setInt(1, group.getId());
-            isDeleted = !send.execute();
+            isDeleted = true;
+            send.execute();
 
             send.close();
         } catch (SQLException ex) {
@@ -168,9 +169,62 @@ public class DataBase {
     public boolean addMember(User user, Group group, Role role) {
         boolean isAdded = false;
 
+        try {
+            PreparedStatement send = conn.prepareStatement(
+                    "INSERT INTO members (user_id, group_id, role) SELECT ?, ?, ? WHERE NOT EXISTS (SELECT user_id, group_id FROM members WHERE user_id = ? AND group_id = ?)");
+            send.setInt(1, user.getId());
+            send.setInt(2, group.getId());
+            send.setString(3, role.toString());
+            send.setInt(4, user.getId());
+            send.setInt(5, group.getId());
 
+            send.executeUpdate();
+            isAdded = true;
+            send.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
 
         return isAdded;
+    }
+
+    public ArrayList<Member> getMembers() {
+        ArrayList<Member> members = new ArrayList<>();
+
+        try {
+            PreparedStatement check = conn
+                    .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id");
+            ResultSet rs = check.executeQuery();
+
+            while (rs.next()) {
+                members.add(new Member(rs.getString("name"),
+                        rs.getString("gname"),
+                        Role.valueOf(rs.getString("role")),
+                        rs.getInt("user_id")));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return members;
+    }
+
+    public boolean deleteMember(Member member) {
+        boolean isDeleted = false;
+
+        try {
+            PreparedStatement send = conn
+                    .prepareStatement("DELETE FROM members WHERE EXISTS( SELECT user_id FROM members WHERE user_id = ?)");
+            send.setInt(1, member.getId());
+            isDeleted = true;
+            send.execute();
+
+            send.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+
+        return isDeleted;
     }
 
 //    public ArrayList<Santa> setSantas(User admin) {

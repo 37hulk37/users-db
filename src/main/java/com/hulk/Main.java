@@ -23,6 +23,7 @@ public class Main {
         db.addMember(db.getUser("Andrey"), db.getGroup("rust"), Role.User);
 
         ArrayList<User> users = db.getUsers();
+        ArrayList<Member> members = db.getMembers();
         ArrayList<Group> groups = db.getGroups();
         //ArrayList<Santa> santas = db.setSantas(db.getUser("Alex"));
 
@@ -30,9 +31,14 @@ public class Main {
 //            System.out.println(g);
 //        }
 
+        for (Member m: members) {
+            System.out.println(m);
+        }
+
         for (User u: users) {
             System.out.println(u);
         }
+
         for (Group g: groups) {
             System.out.println(g);
         }
@@ -41,10 +47,12 @@ public class Main {
 //            System.out.println(db.deleteSantas(g));
 //        }
 
+        for (Member m: members) {
+            System.out.println(db.deleteMember(m));
+        }
         for (Group g: groups) {
             System.out.println(db.deleteGroup(g));
         }
-
         for (User u: users) {
             System.out.println(db.deleteUser(u));
         }

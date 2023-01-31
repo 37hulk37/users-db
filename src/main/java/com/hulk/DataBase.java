@@ -21,21 +21,15 @@ public class DataBase {
         boolean isCreated = false;
 
         try {
-            PreparedStatement check = conn.prepareStatement("SELECT NOT EXISTS(SELECT name FROM users WHERE name = ?)");
-            check.setString(1, username);
-            ResultSet rs = check.executeQuery();
+            PreparedStatement send = conn
+                    .prepareStatement("INSERT INTO users (name) SELECT ? WHERE NOT EXISTS (SELECT name FROM users WHERE name = ?)");
+            send.setString(1, username);
+            send.setString(2, username);
 
-            if ( rs.next() ) {
-                rs.close();
-                PreparedStatement send = conn.prepareStatement("INSERT INTO users (name) VALUES (?)");
-                send.setString(1, username);
+            send.executeUpdate();
+            isCreated = true;
+            send.close();
 
-                send.executeUpdate();
-                isCreated = true;
-                send.close();
-            }
-
-            check.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -47,8 +41,8 @@ public class DataBase {
         boolean isDeleted = false;
 
         try {
-            PreparedStatement send = conn.
-                    prepareStatement("DELETE FROM users WHERE EXISTS( SELECT user_id FROM users WHERE user_id = ?)");
+            PreparedStatement send = conn
+                    .prepareStatement("DELETE FROM users WHERE EXISTS( SELECT user_id FROM users WHERE user_id = ?)");
             send.setInt(1, user.getId());
             isDeleted = send.execute();
 
@@ -82,21 +76,14 @@ public class DataBase {
         boolean isCreated = false;
 
         try {
-            PreparedStatement check = conn.prepareStatement("SELECT NOT EXISTS(SELECT name FROM groups WHERE name = ?)");
-            check.setString(1, gname);
-            ResultSet rs = check.executeQuery();
+            PreparedStatement send = conn
+                    .prepareStatement("INSERT INTO groups (name) SELECT ? WHERE NOT EXISTS (SELECT name FROM groups WHERE name = ?)");
+            send.setString(1, gname);
+            send.setString(2, gname);
 
-            if ( rs.next() ) {
-                rs.close();
-                PreparedStatement send = conn.prepareStatement("INSERT INTO groups (name) VALUES (?)");
-                send.setString(1, gname);
-
-                send.executeUpdate();
-                isCreated = true;
-                send.close();
-            }
-
-            check.close();
+            send.executeUpdate();
+            isCreated = true;
+            send.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -185,4 +172,21 @@ public class DataBase {
 
         return isAdded;
     }
+
+//    public ArrayList<Santa> setSantas(User admin) {
+//        closeGroup();
+//        ArrayList<Santa> santas = null;
+//
+//        ArrayList<User> users = getUsers();
+//
+//        shuffle();
+//
+//        for (int i = 0; i < users.size(); i += 2) {
+//
+//        }
+//
+//        //query to db to add list of santas to table Santas
+//
+//        return santas;
+//    }
 }

@@ -21,11 +21,16 @@ public class DataBase {
         return isExecuted;
     }
 
-//    public ArrayList<Class> getQuery(PreparedStatement st) throws SQLException {
-//        boolean isExecuted = st.execute();
-//        st.close();
+    // rewrite getQuery using reflection api
+//    public ArrayList<?> getQuery(PreparedStatement st) throws SQLException {
+//        ArrayList<?> list = new ArrayList<>();
 //
-//        return isExecuted;
+//        ResultSet rs = st.executeQuery();
+//        while (rs.next()) {
+//            SomeClass = new User(rs.getInt("user_id"), rs.getString("name"));
+//        }
+//
+//        return list;
 //    }
 
     public boolean createUser(String username) throws SQLException {
@@ -98,20 +103,16 @@ public class DataBase {
         return group;
     }
 
-    public ArrayList<Group> getGroups() {
+    public ArrayList<Group> getGroups() throws SQLException {
         ArrayList<Group> groups = new ArrayList<>();
 
-        try {
-            PreparedStatement check = conn.prepareStatement("SELECT group_id, gname, is_closed FROM groups");
-            ResultSet rs = check.executeQuery();
+        PreparedStatement check = conn.prepareStatement("SELECT group_id, gname, is_closed FROM groups");
+        ResultSet rs = check.executeQuery();
 
-            while (rs.next()) {
-                groups.add(new Group(rs.getInt("group_id"),
-                        rs.getString("gname"),
-                        rs.getBoolean("is_closed")));
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        while (rs.next()) {
+            groups.add(new Group(rs.getInt("group_id"),
+                    rs.getString("gname"),
+                    rs.getBoolean("is_closed")));
         }
 
         return groups;
@@ -137,46 +138,38 @@ public class DataBase {
         return createOrDeleteQuery(send);
     }
 
-    public Member getMember(int groupId, int userId) {
+    public Member getMember(int groupId, int userId) throws SQLException {
         Member member = null;
-        try {
-            PreparedStatement send = conn
-                    .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ? AND u.user_id = ?");
-            send.setInt(1, groupId);
-            send.setInt(2, userId);
-            ResultSet rs = send.executeQuery();
 
-            while (rs.next()) {
-                member = new Member(rs.getString("name"),
-                        rs.getString("gname"),
-                        Role.valueOf(rs.getString("role")),
-                        rs.getInt("user_id"));
-            }
+        PreparedStatement send = conn
+                .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ? AND u.user_id = ?");
+        send.setInt(1, groupId);
+        send.setInt(2, userId);
+        ResultSet rs = send.executeQuery();
 
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        while (rs.next()) {
+            member = new Member(rs.getString("name"),
+                    rs.getString("gname"),
+                    Role.valueOf(rs.getString("role")),
+                    rs.getInt("user_id"));
         }
 
         return member;
     }
 
-    public ArrayList<Member> getMembers(int groupId) {
+    public ArrayList<Member> getMembers(int groupId) throws SQLException {
         ArrayList<Member> members = new ArrayList<>();
 
-        try {
-            PreparedStatement send = conn
-                    .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ?");
-            send.setInt(1, groupId);
-            ResultSet rs = send.executeQuery();
+        PreparedStatement send = conn
+                .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ?");
+        send.setInt(1, groupId);
+        ResultSet rs = send.executeQuery();
 
-            while (rs.next()) {
-                members.add(new Member(rs.getString("name"),
-                        rs.getString("gname"),
-                        Role.valueOf(rs.getString("role")),
-                        rs.getInt("user_id")));
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        while (rs.next()) {
+            members.add(new Member(rs.getString("name"),
+                    rs.getString("gname"),
+                    Role.valueOf(rs.getString("role")),
+                    rs.getInt("user_id")));
         }
 
         return members;
@@ -190,16 +183,12 @@ public class DataBase {
         return createOrDeleteQuery(send);
     }
 
-    public ArrayList<Santa> setSantas(int groupId, Member admin) {
+    public ArrayList<Santa> setSantas(int groupId, Member admin) throws SQLException {
         ArrayList<Santa> santas = null;
         if (admin.getRole() == Role.Admin) {
-            try {
-                PreparedStatement closeGroup = conn
-                        .prepareStatement("UPDATE groups SET is_closed = 't' WHERE group_id = ?");
-                closeGroup.setInt(1, groupId);
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
+            PreparedStatement closeGroup = conn
+                    .prepareStatement("UPDATE groups SET is_closed = 't' WHERE group_id = ?");
+            closeGroup.setInt(1, groupId);
         }
 //        ArrayList<Santa> santas = null;
 //

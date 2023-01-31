@@ -32,13 +32,16 @@ public class Main {
 
             Group group = db.getGroup("rust");
 
+            Member admin = db.getMember(group.getId(), user.getId());
+            db.setSantas(group.getId(), admin);
+
             ArrayList<Member> members = db.getMembers(group.getId());
             ArrayList<Group> groups = db.getGroups();
-            ArrayList<Santa> santas = db.setSantas(group.getId(), db.getMember(group.getId(), user.getId()));
+            ArrayList<Santa> santas = db.getSantas(group.getId(), admin);
 
-//            for (Santa s: santas) {
-//                System.out.println(s);
-//            }
+            for (Santa s: santas) {
+                System.out.println(s);
+            }
 
             for (Member m: members) {
                 System.out.println(m);
@@ -52,9 +55,9 @@ public class Main {
                 System.out.println(g);
             }
 
-//        for (Group g: groups) {
-//            System.out.println(db.deleteSantas(g));
-//        }
+            for (Santa s: santas) {
+                System.out.println(db.deleteSantas(s));
+            }
 
             for (Member m: members) {
                 System.out.println(db.deleteMember(m));

@@ -4,7 +4,7 @@ import com.hulk.models.*;
 import com.hulk.models.Member.Role;
 
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 
 public class DataBase {
     private Connection conn;
@@ -142,7 +142,7 @@ public class DataBase {
         Member member = null;
 
         PreparedStatement send = conn
-                .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ? AND u.user_id = ?");
+                .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id, m.group_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ? AND u.user_id = ?");
         send.setInt(1, groupId);
         send.setInt(2, userId);
         ResultSet rs = send.executeQuery();
@@ -151,7 +151,8 @@ public class DataBase {
             member = new Member(rs.getString("name"),
                     rs.getString("gname"),
                     Role.valueOf(rs.getString("role")),
-                    rs.getInt("user_id"));
+                    rs.getInt("user_id"),
+                    rs.getInt("group_id"));
         }
 
         return member;
@@ -161,7 +162,7 @@ public class DataBase {
         ArrayList<Member> members = new ArrayList<>();
 
         PreparedStatement send = conn
-                .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ?");
+                .prepareStatement("SELECT u.name, g.gname, m.role, m.user_id, m.group_id FROM users u, groups g, members m WHERE u.user_id = m.user_id AND g.group_id = m.group_id AND m.group_id = ?");
         send.setInt(1, groupId);
         ResultSet rs = send.executeQuery();
 
@@ -169,7 +170,8 @@ public class DataBase {
             members.add(new Member(rs.getString("name"),
                     rs.getString("gname"),
                     Role.valueOf(rs.getString("role")),
-                    rs.getInt("user_id")));
+                    rs.getInt("user_id"),
+                    rs.getInt("group_id")));
         }
 
         return members;
@@ -177,33 +179,65 @@ public class DataBase {
 
     public boolean deleteMember(Member member) throws SQLException {
         PreparedStatement send = conn
-                    .prepareStatement("DELETE FROM members WHERE EXISTS( SELECT user_id FROM members WHERE user_id = ?)");
+                .prepareStatement("DELETE FROM members WHERE EXISTS( SELECT user_id FROM members WHERE user_id = ?)");
         send.setInt(1, member.getId());
 
         return createOrDeleteQuery(send);
     }
 
-    public ArrayList<Santa> setSantas(int groupId, Member admin) throws SQLException {
-        ArrayList<Santa> santas = null;
+    public void setSantas(int groupId, Member admin) throws SQLException {
+        ArrayList<Santa> santas = new ArrayList<>();
+        ArrayList<Member> members = getMembers(groupId);
+
         if (admin.getRole() == Role.Admin) {
             PreparedStatement closeGroup = conn
                     .prepareStatement("UPDATE groups SET is_closed = 't' WHERE group_id = ?");
             closeGroup.setInt(1, groupId);
-        }
-//        ArrayList<Santa> santas = null;
-//
-//        ArrayList<User> users = getUsers();
-//
-//        shuffle();
-//
-//        for (int i = 0; i < users.size(); i += 2) {
-//
-//        }
 
-        //query to db to add list of santas to table Santas
+            Collections.shuffle(members);
+
+            for (int i = 0; i < members.size() / 2; i++) {
+                santas.add(new Santa(members.get(i).getId(),
+                        members.get(i).getName(),
+                        members.get(i + 1).getId(),
+                        members.get(i + 1).getName(),
+                        groupId));
+            }
+        }
+
+        for (Santa s: santas) {
+            PreparedStatement send = conn.prepareStatement("INSERT INTO santas (rec_id, self_id, group_id) VALUES (?, ?, ?)");
+            send.setInt(1, s.getRecipientId());
+            send.setInt(2, s.getSelfId());
+            send.setInt(3, s.getGroupId());
+
+            createOrDeleteQuery(send);
+        }
+    }
+
+    public ArrayList<Santa> getSantas(int groupId, Member admin) throws SQLException {
+        ArrayList<Santa> santas = new ArrayList<>();
+
+        PreparedStatement send = conn
+                .prepareStatement("SELECT u_s.name, u_r.name, s.group_id FROM santas s JOIN users u_s ON s.rec_id = u_s.user_id JOIN users u_r ON s.rec_id = u_r.user_id AND s.group_id = ?");
+        send.setInt(1, groupId);
+        ResultSet rs = send.executeQuery();
+
+        while (rs.next()) {
+
+            santas.add(new Santa(rs.getString(1),
+                    rs.getString(2),
+                    rs.getInt("group_id")));
+        }
 
         return santas;
     }
 
+    public boolean deleteSantas(Santa santa) throws SQLException {
+        PreparedStatement send = conn
+                .prepareStatement("DELETE FROM santas WHERE EXISTS( SELECT user_id FROM members WHERE user_id = ?)");
+        send.setInt(1, santa.getSelfId());
 
+        return createOrDeleteQuery(send);
+    }
 }

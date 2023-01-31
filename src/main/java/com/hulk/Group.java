@@ -1,13 +1,13 @@
 package com.hulk;
 
 public class Group {
-    private String name;
+    private String gname;
     private int id;
     boolean isClosed;
 
-    public Group(int id, String name, Boolean isClosed) {
+    public Group(int id, String gname, Boolean isClosed) {
         this.id = id;
-        this.name = name;
+        this.gname = gname;
         this.isClosed = isClosed;
     }
 
@@ -18,7 +18,7 @@ public class Group {
     @Override
     public String toString() {
         return "Group{" +
-                "name='" + name + '\'' +
+                "name='" + gname + '\'' +
                 ", id=" + id +
                 ", isClosed=" + isClosed +
                 '}';

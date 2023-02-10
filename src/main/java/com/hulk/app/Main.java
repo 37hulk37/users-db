@@ -5,8 +5,33 @@ import com.hulk.models.Member.Role;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
-public class Main {
+public class Application {
+    private DataBase db;
+    private ExecutorService pool;
+    private int cores;
+    private ArrayList<Future> futures;
+
+    private interface ThreadFunction {
+        void apply();
+    }
+
+    public Application() {
+        cores = Runtime.getRuntime().availableProcessors();
+        pool = Executors.newFixedThreadPool(cores);
+        futures = new ArrayList<>();
+    }
+
+    private void addFuture(ThreadFunction func) {
+        Future future = pool.submit(new Thread(() -> {
+            func.apply();
+        }));
+        futures.add(future);
+    }
+
     public static void main(String[] args) {
         try {
             String url = "jdbc:postgresql://127.0.0.1:5432/users-db";
@@ -39,35 +64,36 @@ public class Main {
             ArrayList<Group> groups = db.getGroups();
             ArrayList<Santa> santas = db.getSantas(group.getId(), admin);
 
-            for (Santa s: santas) {
+            for (Santa s : santas) {
                 System.out.println(s);
             }
 
-            for (Member m: members) {
+            for (Member m : members) {
                 System.out.println(m);
             }
 
-            for (User u: users) {
+            for (User u : users) {
                 System.out.println(u);
             }
 
-            for (Group g: groups) {
+            for (Group g : groups) {
                 System.out.println(g);
             }
 
-            for (Santa s: santas) {
+            for (Santa s : santas) {
                 System.out.println(db.deleteSantas(s));
             }
 
-            for (Member m: members) {
+            for (Member m : members) {
                 System.out.println(db.deleteMember(m));
             }
-            for (Group g: groups) {
+            for (Group g : groups) {
                 System.out.println(db.deleteGroup(g));
             }
-            for (User u: users) {
+            for (User u : users) {
                 System.out.println(db.deleteUser(u));
             }
+
         } catch (SQLException ex) {
             ex.printStackTrace();
         }

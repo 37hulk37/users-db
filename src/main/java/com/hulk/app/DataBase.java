@@ -21,18 +21,6 @@ public class DataBase {
         return isExecuted;
     }
 
-    // rewrite getQuery using reflection api
-//    public ArrayList<?> getQuery(PreparedStatement st) throws SQLException {
-//        ArrayList<?> list = new ArrayList<>();
-//
-//        ResultSet rs = st.executeQuery();
-//        while (rs.next()) {
-//            SomeClass = new User(rs.getInt("user_id"), rs.getString("name"));
-//        }
-//
-//        return list;
-//    }
-
     public boolean createUser(String username) throws SQLException {
         PreparedStatement send = conn
                 .prepareStatement("INSERT INTO users (name) SELECT ? WHERE NOT EXISTS (SELECT name FROM users WHERE name = ?)");
@@ -224,7 +212,6 @@ public class DataBase {
         ResultSet rs = send.executeQuery();
 
         while (rs.next()) {
-
             santas.add(new Santa(rs.getString(1),
                     rs.getString(2),
                     rs.getInt("group_id")));

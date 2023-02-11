@@ -5,38 +5,13 @@ import com.hulk.models.Member.Role;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
-public class Application {
-    private DataBase db;
-    private ExecutorService pool;
-    private int cores;
-    private ArrayList<Future> futures;
-
-    private interface ThreadFunction {
-        void apply();
-    }
-
-    public Application() {
-        cores = Runtime.getRuntime().availableProcessors();
-        pool = Executors.newFixedThreadPool(cores);
-        futures = new ArrayList<>();
-    }
-
-    private void addFuture(ThreadFunction func) {
-        Future future = pool.submit(new Thread(() -> {
-            func.apply();
-        }));
-        futures.add(future);
-    }
-
+public class Main {
     public static void main(String[] args) {
         try {
             String url = "jdbc:postgresql://127.0.0.1:5432/users-db";
-            String username = "postgres";
-            String password = "qwe";
+            String username = "username";
+            String password = "password";
 
             DataBase db = new DataBase(url, username, password);
 
@@ -93,7 +68,6 @@ public class Application {
             for (User u : users) {
                 System.out.println(db.deleteUser(u));
             }
-
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
